@@ -16,19 +16,21 @@
             android:layout_height="wrap_content">
         <EditText
             android:id="@+id/et_path"
+            android:maxLines="1"
             android:layout_width="0dp"
             android:layout_weight="1.5"
             android:layout_height="wrap_content"
-            android:hint="请输入要播放的音乐路径"/>
+            android:hint="请输入要播放的音乐路径" />
         <TextView
             android:id="@+id/list"
+            android:clickable="true"
+            android:onClick="click"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="列表"
-            android:clickable="true"
-            android:onClick="click"
-            android:layout_marginLeft="15dp"
-            android:drawableTop="@drawable/btn_audio_list_normal"/>
+            android:drawableTop="@drawable/btn_audio_list_normal"
+            android:layout_marginLeft="15dp"/>
+
     </LinearLayout>
     <SeekBar
         android:id="@+id/bar"
@@ -73,5 +75,27 @@
             android:text="停止"/>
 
     </LinearLayout>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+        <EditText
+            android:id="@+id/et_image"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="1.5"
+            android:hint="请输入网络图片路径"/>
+        <Button
+            android:id="@+id/bt_image"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:onClick="image"
+            android:text="查看"/>
+    </LinearLayout>
+    <ImageView
+        android:id="@+id/iv"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#ff00ff"/>
 
 </LinearLayout>

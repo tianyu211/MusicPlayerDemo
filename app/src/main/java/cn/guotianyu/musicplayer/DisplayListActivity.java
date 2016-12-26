@@ -3,6 +3,7 @@ package cn.guotianyu.musicplayer;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
@@ -40,7 +41,9 @@ public class DisplayListActivity extends Activity {
 
     /**
      * 继承BaseAdapter方法需要重写
+     * 主要两个是
      * getCount() //返回列表个数
+     * getView(int position, View convertView, ViewGroup parent)//返回每个位置条目的view对象
      * getItem(int position)//根据位置获得对象
      * getItemId(int position) //根据位置获得对象id
      * 自动重写这些方法需要选中 BaseAdapter 然后alt+enter 选择Implement methods
@@ -49,19 +52,18 @@ public class DisplayListActivity extends Activity {
         //配置数据适配器
 
         @Override
-        public int getCount() {
-            //控制listview条目数量
+        public int getCount() {//控制listview条目数量
             return list.size();
         }
 
         @Override
         public Object getItem(int position) {
-            return null;
+            return list.get(position);
         }
 
         @Override
         public long getItemId(int position) {
-            return 0;
+            return position;
         }
 
         @Override
@@ -71,12 +73,16 @@ public class DisplayListActivity extends Activity {
             TextView musicname = (TextView) view.findViewById(R.id.musicname);
             TextView musicduration = (TextView) view.findViewById(R.id.musicduration);
             musicname.setText(list.get(position).getName());
+
+            System.out.println(position);
+
             int time = list.get(position).getDuration();//歌曲时长，以毫秒为计量单位
             time = time/1000;//毫秒换成秒
             int minute = time/60;//秒换成分
             int second = time%60;//秒
-            String duration = String.format("%02d:%02d",minute,second);
+            String duration = String.format("%02d:%02d",minute,second);//输出格式
             musicduration.setText(duration);
+            // return view
             return view;
         }
     }

@@ -18,7 +18,9 @@ public class DisplayModel {
     public static ArrayList<AudioInfo>getAudioInfo(Context context){
         //ArrayList<AudioInfo>存放对象，返回值是ArrayList
         ArrayList<AudioInfo>list = new ArrayList<AudioInfo>();
-        ContentResolver resolver = context.getContentResolver();//访问别人数据库，使用四大组件provider
+
+        ContentResolver resolver = context.getContentResolver();//
+
         Uri uri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
         String []projection={MediaStore.Audio.Media.DATA, MediaStore.Audio.Media.TITLE,MediaStore.Audio.Media.ARTIST,MediaStore.Audio.Media.DURATION};
         Cursor cursor = resolver.query(uri,projection,null,null,null);
