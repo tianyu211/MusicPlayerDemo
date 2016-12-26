@@ -86,6 +86,4 @@ public class DisplayListActivity extends Activity {
             return view;
         }
     }
-
-
 }

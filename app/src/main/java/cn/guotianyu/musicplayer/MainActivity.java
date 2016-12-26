@@ -62,7 +62,6 @@ public class MainActivity extends AppCompatActivity {
         }
     };
 
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -71,9 +70,10 @@ public class MainActivity extends AppCompatActivity {
         et_path = (EditText) findViewById(R.id.et_path);
         bt_pause = (Button) findViewById(R.id.bt_pause);
         bar = (SeekBar) findViewById(R.id.bar);
-
         et_image = (EditText) findViewById(R.id.et_image);
         iv = (ImageView) findViewById(R.id.iv);
+        //这里比较重要，给list赋值
+        list=DisplayModel.getAudioInfo(this);
         //计时
         timer = new Timer();
         task = new TimerTask() {
@@ -85,12 +85,9 @@ public class MainActivity extends AppCompatActivity {
                     bar.setMax(total);
                     bar.setProgress(progress);
                 }
-
             }
         };
         timer.schedule(task,500,500);
-
-
         /**
          * 拖动进度条的事件监听需要实现SeekBar.OnSeekBarChangeListener接口
          * 调用SeekBar的setOnSeekBarChangeListener把该事件监听对象传递进去进行事件监听
@@ -121,7 +118,7 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    //点击列表
+    //点击列表按钮
     public void click(View view){
         switch (view.getId()){
             case R.id.list:
@@ -136,135 +133,65 @@ public class MainActivity extends AppCompatActivity {
                 break;
         }
     }
-//    //接受子activity返回的结果时调用的方法
-//    @Override
-//    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-//        super.onActivityResult(requestCode, resultCode, data);
-//        if(resultCode>=0){
-//            position=resultCode;
-//            play(resultCode);
-//        }
-//    }
 
-//    //歌曲清单中选择一首后调用的方法
-//    public void play(int position){
-//        if(mediaPlayer!=null&&mediaPlayer.isPlaying()){
-//            mediaPlayer.stop();
-//            mediaPlayer.reset();
-//
-//            try {
-//                mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
-//                mediaPlayer.setDataSource(list.get(position).getPath());
-//                mediaPlayer.prepare();
-//                mediaPlayer.start();
-//            } catch (IOException e) {
-//                Toast.makeText(this,"播放失败！音乐可能不存在！",Toast.LENGTH_SHORT).show();
-//            }
-//        }else{
-//            mediaPlayer = new MediaPlayer();
-//            try {
-//                mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
-//                mediaPlayer.setDataSource(list.get(position).getPath());
-//                mediaPlayer.prepare();
-//                mediaPlayer.start();
-//            } catch (IOException e) {
-//                Toast.makeText(this,"播放失败！音乐可能不存在！",Toast.LENGTH_SHORT).show();
-//            }
-//        }
-//        startupdateber();
-//    }
-//    private android.os.Handler handler = new android.os.Handler();
-//    public void startupdateber(){
-//        handler.post(r);
-//    }
-//    private Runnable r = new Runnable(){
-//        //获取进度条当前的进度
-//        @Override
-//        public void run() {
-//            int max = mediaPlayer.getDuration();
-//            int currentPosition = mediaPlayer.getCurrentPosition();
-//            bar.setMax(max);
-//            bar.setProgress(currentPosition);
-//            handler.postDelayed(r,100);
-//        }
-//
-//    };
-
-
-    //播放
-//    public void play(View view){
-//        path = et_path.getText().toString().trim();
-//        if(TextUtils.isEmpty(path)){
-//            Toast.makeText(this,"音频文件不能为空",Toast.LENGTH_SHORT).show();
-//        }else{
-//            try {
-//                //1.初始化mediaPlayer
-//                mediaPlayer = new MediaPlayer();
-//                //2.设置播放器的一些初始化参数
-//                mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
-//                mediaPlayer.setDataSource(path);
-//                //3.准备播放音乐
-//                mediaPlayer.prepare();
-//                //4.开始播放
-//                mediaPlayer.start();
-//            } catch (IOException e) {
-//                Toast.makeText(this,"播放失败",Toast.LENGTH_SHORT).show();
-//            }
-//        }
-//
-//    }
+    //接受子activity返回的结果时调用的方法
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if(resultCode>=0){
+//            position = resultCode; //???要这个干啥??
+            //设置返回的路径
+            path = list.get(resultCode).getPath();
+            //把路径在EditText展示
+            et_path.setText(path);
+        }
+    }
 
     //播放按钮
     public void play(View view){
-        path = et_path.getText().toString().trim();
-        //判断是否输入了路径
-        if(TextUtils.isEmpty(path)) {
-            Toast.makeText(this,"路径不能为空",Toast.LENGTH_SHORT).show();
-        }else{
-            /**
-             * 这里有个无法修复的BUG，就是多次点击播放会出现多重唱
-             * 是因为在真正的项目开发中，播放停止功能逻辑都是写在后台服务的onCreate()中
-             * 而后台服务的onCreate()只会执行一次，所以不会出现这种情况
-             */
-            try {
-                //1.初始化mediaPlayer
-                mediaPlayer = new MediaPlayer();
-                //2.设置播放器的一些初始化参数
-
-                mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);//设置媒体流类型，根据播放类型分配内存
+        System.out.println(path);
+        /**
+         * 这里有个无法修复的BUG，就是多次点击播放会出现多重唱
+         * 是因为在真正的项目开发中，播放停止功能逻辑都是写在后台服务的onCreate()中
+         * 而后台服务的onCreate()只会执行一次，所以不会出现这种情况，这里不用管就好
+         */
+        try {
+            //1.初始化mediaPlayer
+            mediaPlayer = new MediaPlayer();
+            //2.设置播放器的一些初始化参数
+            mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);//设置媒体流类型，根据播放类型分配内存
 //            mediaPlayer.setDataSource(this,"http://guotianyu.cn:211/a.mp3");//这里可以设置播放网络音乐
-                mediaPlayer.setDataSource(path);//设置播放音乐路径
-                //3.准备播放音乐
-                /**
-                 * 本地音频
-                 * mediaPlayer.prepare();
-                 * 在主线程准备播放，如果主线程不执行完毕，下面就不执行
-                 * 所以如果播放网络音乐，准备的时间过长
-                 * 就容易出现 ANR （application not respond）程序无响应
-                 */
-                /**
-                 * 网络音频
-                 * mediaPlayer.prepareAsync();
-                 * 是指在子线程准备播放,即使子线程不执行完毕，也会执行下一步
-                 * 这样造成的问题就是，如果音乐没有下载完毕，那么仍然执行下一步
-                 * 导致音乐无法播放
-                 */
-                mediaPlayer.prepareAsync();
-                /**
-                 * 所以设置一个setOnPreparedListener
-                 * 设置一个监听器
-                 */
-                mediaPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
-                    //一旦监听器准备好，就调用onPrepared方法
-                    @Override
-                    public void onPrepared(MediaPlayer mp) {
-                        //4.播放音乐
-                        mediaPlayer.start();
-                    }
-                });
-            } catch (IOException e) {
-                Toast.makeText(this,"音乐无法播放",Toast.LENGTH_SHORT).show();
-            }
+            mediaPlayer.setDataSource(path);//设置播放音乐路径
+            //3.准备播放音乐
+            /**
+             * 本地音频
+             * mediaPlayer.prepare();
+             * 在主线程准备播放，如果主线程不执行完毕，下面就不执行
+             * 所以如果播放网络音乐，准备的时间过长
+             * 就容易出现 ANR （application not respond）程序无响应
+             */
+            /**
+             * 网络音频
+             * mediaPlayer.prepareAsync();
+             * 是指在子线程准备播放,即使子线程不执行完毕，也会执行下一步
+             * 这样造成的问题就是，如果音乐没有下载完毕，那么仍然执行下一步
+             * 导致音乐无法播放
+             */
+            mediaPlayer.prepareAsync();
+            /**
+             * 所以设置一个setOnPreparedListener
+             * 设置一个监听器
+             */
+            mediaPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
+                //一旦监听器准备好，就调用onPrepared方法
+                @Override
+                public void onPrepared(MediaPlayer mp) {
+                    //4.播放音乐
+                    mediaPlayer.start();
+                }
+            });
+        } catch (IOException e) {
+            Toast.makeText(this,"音乐无法播放",Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -356,9 +283,7 @@ public class MainActivity extends AppCompatActivity {
             }.start();
         }
     }
-
-
-
+    //销毁这些玩意
     @Override
     protected void onDestroy() {
         timer.cancel();

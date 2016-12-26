@@ -20,7 +20,7 @@
             android:layout_width="0dp"
             android:layout_weight="1.5"
             android:layout_height="wrap_content"
-            android:hint="请输入要播放的音乐路径" />
+            android:hint="本地或网络音乐" />
         <TextView
             android:id="@+id/list"
             android:clickable="true"
