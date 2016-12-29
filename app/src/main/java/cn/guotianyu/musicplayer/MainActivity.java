@@ -36,7 +36,7 @@ public class MainActivity extends AppCompatActivity {
     //播放路径
     private String path;
     //暂停
-    private Button bt_pause;
+    private Button bt_play;
     //拖动进度条
     private SeekBar bar;
     private int position = 0;
@@ -68,7 +68,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         //查找控件
         et_path = (EditText) findViewById(R.id.et_path);
-        bt_pause = (Button) findViewById(R.id.bt_pause);
+        bt_play = (Button) findViewById(R.id.bt_play);
         bar = (SeekBar) findViewById(R.id.bar);
         et_image = (EditText) findViewById(R.id.et_image);
         iv = (ImageView) findViewById(R.id.iv);
@@ -116,6 +116,8 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         });
+
+//        MediaPlayer mediaPlayer = new MediaPlayer();
     }
 
     //点击列表按钮
@@ -139,105 +141,157 @@ public class MainActivity extends AppCompatActivity {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if(resultCode>=0){
-//            position = resultCode; //???要这个干啥??
+            position = resultCode;
             //设置返回的路径
-            path = list.get(resultCode).getPath();
+            path = list.get(position).getPath();
             //把路径在EditText展示
             et_path.setText(path);
         }
     }
 
-    //播放按钮
-    public void play(View view){
-        System.out.println(path);
-        /**
-         * 这里有个无法修复的BUG，就是多次点击播放会出现多重唱
-         * 是因为在真正的项目开发中，播放停止功能逻辑都是写在后台服务的onCreate()中
-         * 而后台服务的onCreate()只会执行一次，所以不会出现这种情况，这里不用管就好
-         */
-        try {
-            //1.初始化mediaPlayer
-            mediaPlayer = new MediaPlayer();
-            //2.设置播放器的一些初始化参数
-            mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);//设置媒体流类型，根据播放类型分配内存
-//            mediaPlayer.setDataSource(this,"http://guotianyu.cn:211/a.mp3");//这里可以设置播放网络音乐
-            mediaPlayer.setDataSource(path);//设置播放音乐路径
-            //3.准备播放音乐
-            /**
-             * 本地音频
-             * mediaPlayer.prepare();
-             * 在主线程准备播放，如果主线程不执行完毕，下面就不执行
-             * 所以如果播放网络音乐，准备的时间过长
-             * 就容易出现 ANR （application not respond）程序无响应
-             */
-            /**
-             * 网络音频
-             * mediaPlayer.prepareAsync();
-             * 是指在子线程准备播放,即使子线程不执行完毕，也会执行下一步
-             * 这样造成的问题就是，如果音乐没有下载完毕，那么仍然执行下一步
-             * 导致音乐无法播放
-             */
-            mediaPlayer.prepareAsync();
-            /**
-             * 所以设置一个setOnPreparedListener
-             * 设置一个监听器
-             */
-            mediaPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
-                //一旦监听器准备好，就调用onPrepared方法
-                @Override
-                public void onPrepared(MediaPlayer mp) {
-                    //4.播放音乐
-                    mediaPlayer.start();
-                }
-            });
-        } catch (IOException e) {
-            Toast.makeText(this,"音乐无法播放",Toast.LENGTH_SHORT).show();
-        }
+    //播放,暂停按钮
+    public void bt_play(View view){
+        play();
     }
 
-
-    //暂停
-    public void pause(View view){
-        if("继续".equals(bt_pause.getText().toString())){
-            mediaPlayer.start();
-            bt_pause.setText("暂停");
-            return;
-        }
-        if(mediaPlayer!=null && mediaPlayer.isPlaying()){
-            mediaPlayer.pause();
-            bt_pause.setText("继续");
-        }
-    }
-    //重播
-    public void replay(View view){
-        /**
-         * 这是在播放情况下
-         */
-        if(mediaPlayer!=null && mediaPlayer.isPlaying()){
-            mediaPlayer.seekTo(0);
-            return;
-        }
-        /**
-         * 如果是暂停状态下
-         */
-        if(mediaPlayer!=null){
-            //播放状态为0毫秒
-            mediaPlayer.seekTo(0);
-            mediaPlayer.start();
-            bt_pause.setText("暂停");
-        }
-    }
-    //停止
-    public void stop(View view){
-        if(mediaPlayer!=null && mediaPlayer.isPlaying()) {
+    //上一首
+    public void prev(View view){
+        if(mediaPlayer!=null&&mediaPlayer.isPlaying()) {
             mediaPlayer.stop();
             mediaPlayer.release();
+//            mediaPlayer.reset();
             mediaPlayer=null;
         }
-        bt_pause.setText("暂停");
-        bar.setProgress(0);
-
+        position = (position-1)%list.size();
+        if(position<0)
+            position = list.size()-1;
+        path = list.get(position).getPath();
+        et_path.setText(path);
+//        System.out.println(list.size());
+        play();
     }
+    //下一首
+    public void next(View view){
+        if(mediaPlayer!=null&&mediaPlayer.isPlaying()) {
+            mediaPlayer.stop();
+            mediaPlayer.release();
+//            mediaPlayer.reset();
+            mediaPlayer=null;
+        }
+        position = (position+1)%list.size();
+        if(position>list.size()-1)
+            position=0;
+        path = list.get(position).getPath();
+        et_path.setText(path);
+        play();
+    }
+
+    //播放功能
+    public void play(){
+        //暂停
+        if(mediaPlayer!=null && mediaPlayer.isPlaying()){
+            mediaPlayer.pause();
+            bt_play.setText("播放");
+        }else {
+            if(mediaPlayer==null) {//如果是第一次播放
+                System.out.println(path);
+                /**
+                 * 这里有个无法修复的BUG，就是多次点击播放会出现多重唱
+                 * 是因为在真正的项目开发中，播放停止功能逻辑都是写在后台服务的onCreate()中
+                 * 而后台服务的onCreate()只会执行一次，所以不会出现这种情况，这里不用管就好
+                 */
+                try {
+                    //1.初始化mediaPlayer
+                    mediaPlayer = new MediaPlayer();
+                    //2.设置播放器的一些初始化参数
+                    mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);//设置媒体流类型，根据播放类型分配内存
+//            mediaPlayer.setDataSource(this,"http://guotianyu.cn:211/a.mp3");//这里可以设置播放网络音乐
+                    mediaPlayer.setDataSource(path);//设置播放音乐路径
+                    //3.准备播放音乐
+                    /**
+                     * 本地音频
+                     * mediaPlayer.prepare();
+                     * 在主线程准备播放，如果主线程不执行完毕，下面就不执行
+                     * 所以如果播放网络音乐，准备的时间过长
+                     * 就容易出现 ANR （application not respond）程序无响应
+                     */
+                    /**
+                     * 网络音频
+                     * mediaPlayer.prepareAsync();
+                     * 是指在子线程准备播放,即使子线程不执行完毕，也会执行下一步
+                     * 这样造成的问题就是，如果音乐没有下载完毕，那么仍然执行下一步
+                     * 导致音乐无法播放
+                     */
+                    mediaPlayer.prepareAsync();
+                    /**
+                     * 所以设置一个setOnPreparedListener
+                     * 设置一个监听器
+                     */
+                    mediaPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
+                        //一旦监听器准备好，就调用onPrepared方法
+                        @Override
+                        public void onPrepared(MediaPlayer mp) {
+                            //4.播放音乐
+                            mediaPlayer.start();
+                            bt_play.setText("暂停");
+                        }
+                    });
+                } catch (IOException e) {
+                    Toast.makeText(this, "请确认路径正确！", Toast.LENGTH_SHORT).show();
+                }
+            }else{
+                //如果已经播放，点击继续
+                mediaPlayer.start();
+                bt_play.setText("暂停");
+            }
+        }
+    }
+
+//    //暂停
+//    public void pause(View view){
+//        if("继续".equals(bt_pause.getText().toString())){
+//            mediaPlayer.start();
+//            bt_pause.setText("暂停");
+//            return;
+//        }
+//        if(mediaPlayer!=null && mediaPlayer.isPlaying()){
+//            mediaPlayer.pause();
+//            bt_pause.setText("继续");
+//        }
+//    }
+
+    //重播
+//    public void replay(View view){
+//        /**
+//         * 这是在播放情况下
+//         */
+//        if(mediaPlayer!=null && mediaPlayer.isPlaying()){
+//            mediaPlayer.seekTo(0);
+//            return;
+//        }
+//        /**
+//         * 如果是暂停状态下
+//         */
+//        if(mediaPlayer!=null){
+//            //播放状态为0毫秒
+//            mediaPlayer.seekTo(0);
+//            mediaPlayer.start();
+//            bt_pause.setText("暂停");
+//        }
+//    }
+    //停止
+
+
+//    public void stop(View view){
+//        if(mediaPlayer!=null && mediaPlayer.isPlaying()) {
+//            mediaPlayer.stop();
+//            mediaPlayer.release();
+//            mediaPlayer=null;
+//        }
+//        bt_pause.setText("暂停");
+//        bar.setProgress(0);
+//
+//    }
 
     //查看图片
     public void image(View view){
